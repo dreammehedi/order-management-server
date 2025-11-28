@@ -38,7 +38,8 @@ export const loginUser = async (req: Request, res: Response) => {
 
 export const logoutUser = async (req: Request, res: Response) => {
   try {
-    await AuthService.logoutUserService(req.user_id!);
+    console.log(req.user_id, req.token);
+    await AuthService.logoutUserService(req.user_id!, req.token!);
 
     return res.status(200).json({
       success: true,

@@ -68,20 +68,47 @@ export class AuthService {
       { expiresIn: "7d" }
     );
 
+    const sendData = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+      is_active: user.is_active,
+      lastLoginAt: user.lastLoginAt,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    };
     await prisma.users.update({
       where: { id: user.id },
-      data: { lastLoginAt: new Date() },
+      data: { lastLoginAt: new Date(), token },
     });
 
-    return { user, token };
+    return { sendData, token };
   }
 
   // logout user
-  static async logoutUserService(userId: string) {
+  static async logoutUserService(userId: string, token: string) {
+    const user = await prisma.users.findFirst({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new Error("User not found!");
+    }
+
+    if (!user.token) {
+      throw new Error("Already logout!");
+    }
+
+    if (user.token !== token) {
+      throw new Error("Invalid token!");
+    }
+
     await prisma.users.update({
       where: { id: userId },
       data: { token: null },
     });
+
     return true;
   }
 
@@ -110,7 +137,19 @@ export class AuthService {
 
   // get user profile
   static async getUserProfile(userId: string) {
-    const user = await prisma.users.findFirst({ where: { id: userId } });
+    const user = await prisma.users.findFirst({
+      where: { id: userId },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        role: true,
+        is_active: true,
+        lastLoginAt: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
     if (!user) throw new Error("Profile not found!");
     return user;
   }
@@ -127,6 +166,16 @@ export class AuthService {
 
     const updated = await prisma.users.update({
       where: { id: userId },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        role: true,
+        is_active: true,
+        lastLoginAt: true,
+        createdAt: true,
+        updatedAt: true,
+      },
       data: updateData,
     });
 

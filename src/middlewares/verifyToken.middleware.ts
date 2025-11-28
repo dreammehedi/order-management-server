@@ -9,6 +9,7 @@ declare global {
       username?: string;
       phone_number?: string;
       role?: string;
+      token?: string;
     }
   }
 }

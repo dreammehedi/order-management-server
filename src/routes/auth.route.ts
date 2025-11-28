@@ -26,13 +26,9 @@ AuthenticationRouter.post(
 );
 AuthenticationRouter.post("/auth/login", zodValidate(loginSchema), loginUser);
 AuthenticationRouter.post("/auth/logout", verifyToken, logoutUser);
-AuthenticationRouter.get("/auth/user/profile", verifyToken, userProfileData);
+AuthenticationRouter.get("/auth/profile", verifyToken, userProfileData);
+AuthenticationRouter.patch("/auth/profile", verifyToken, updateUserProfile);
 AuthenticationRouter.patch(
-  "/auth/user/profile-update",
-  verifyToken,
-  updateUserProfile
-);
-AuthenticationRouter.post(
   "/auth/change-password",
   verifyToken,
   zodValidate(changePasswordSchema),
