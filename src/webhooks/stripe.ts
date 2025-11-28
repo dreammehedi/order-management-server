@@ -10,7 +10,7 @@ const stripe = new Stripe(STRIPE_SECRET_KEY as string, {
 
 export const stripeWebhookHandler = async (req: Request, res: Response) => {
   const sig = req.headers["stripe-signature"] as string | undefined;
-  const rawBody = req.body; // raw Buffer because express.raw used
+  const rawBody = req.body as Buffer; // cast as Buffer
   try {
     if (!sig) return res.status(400).send("Missing signature");
 
@@ -24,26 +24,18 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
       const pi = event.data.object as Stripe.PaymentIntent;
       const orderId = pi.metadata?.orderId;
       if (orderId) {
-        await prisma.orders.update({
+        const order = await prisma.orders.update({
           where: { id: orderId },
           data: { paymentStatus: "paid", orderStatus: "processing" },
         });
 
-        // notify user via socket.io (emit to user's room)
-        // fetch order to get userId
-        const order = await prisma.orders.findUnique({
-          where: { id: orderId },
+        io.to(order.userId).emit("orderUpdate", {
+          orderId,
+          status: "processing",
         });
-        if (order) {
-          io.to(order.userId).emit("orderUpdate", {
-            orderId,
-            status: "processing",
-          });
-        }
       }
     }
 
-    // handle other event types if needed
     res.json({ received: true });
   } catch (err: any) {
     console.error("Webhook error:", err);

@@ -21,6 +21,13 @@ const prisma = new PrismaClient();
 
 const app: Express = express();
 
+// mount webhook with raw body
+app.post(
+  "/api/webhooks/stripe",
+  express.raw({ type: "application/json" }),
+  stripeWebhookHandler
+);
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -109,13 +116,6 @@ app.get("/health", (_, res: Response) => {
     time: new Date().toISOString(),
   });
 });
-
-// mount webhook with raw body
-app.post(
-  "/api/webhooks/stripe",
-  express.raw({ type: "application/json" }),
-  stripeWebhookHandler
-);
 
 // rate limiter
 app.use("/api", rateLimiter);
