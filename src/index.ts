@@ -8,9 +8,12 @@ import helmet from "helmet";
 import hpp from "hpp";
 import morgan from "morgan";
 
+import { verifyToken } from "./middlewares/verifyToken.middleware";
 import { AuthenticationRouter } from "./routes/auth.route";
+import { OrderRouter } from "./routes/order.route";
 import { ALLOWED_ORIGINS, NODE_ENV, PORT } from "./secrets";
 import { rateLimiter } from "./utils/rateLimiter";
+import { stripeWebhookHandler } from "./webhooks/stripe";
 
 dotenv.config();
 
@@ -34,6 +37,10 @@ const requiredEnvVars = [
   "ALLOWED_ORIGINS",
   "EMAIL_ADDRESS",
   "EMAIL_PASSWORD",
+  "STRIPE_SECRET_KEY",
+  "STRIPE_WEBHOOK_SECRET",
+  "PAYPAL_CLIENT",
+  "PAYPAL_SECRET",
 ];
 
 for (const envVar of requiredEnvVars) {
@@ -103,11 +110,19 @@ app.get("/health", (_, res: Response) => {
   });
 });
 
+// mount webhook with raw body
+app.post(
+  "/api/webhooks/stripe",
+  express.raw({ type: "application/json" }),
+  stripeWebhookHandler
+);
+
 // rate limiter
 app.use("/api", rateLimiter);
 
 // API routes
 app.use("/api", AuthenticationRouter);
+app.use("/api", verifyToken, OrderRouter);
 
 //  404 (error page)
 app.use((req: Request, res: Response) => {

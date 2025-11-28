@@ -15,7 +15,7 @@ import {
   changePasswordSchema,
   loginSchema,
   usersSchema,
-} from "../validation/users.validation";
+} from "../modules/validation/auth.validation";
 
 const AuthenticationRouter = express.Router();
 

@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
+import { AuthService } from "../services/auth.service";
 import {
   changePasswordSchema,
   loginSchema,
   usersSchema,
-} from "../../validation/users.validation";
-import { AuthService } from "../services/auth.service";
+} from "../validation/auth.validation";
 
 export const registerUser = async (req: Request, res: Response) => {
   try {

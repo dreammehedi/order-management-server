@@ -83,7 +83,7 @@ export class AuthService {
       data: { lastLoginAt: new Date(), token },
     });
 
-    return { sendData, token };
+    return { user: sendData, token };
   }
 
   // logout user
