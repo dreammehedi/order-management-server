@@ -22,11 +22,16 @@ const prisma = new PrismaClient();
 const app: Express = express();
 
 // mount webhook with raw body
+
 app.post(
   "/api/webhooks/stripe",
   express.raw({ type: "application/json" }),
   stripeWebhookHandler
 );
+
+// 2️⃣ Now apply the normal JSON parser for all other routes
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Middleware
 app.use(express.json());
