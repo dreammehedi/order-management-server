@@ -36,6 +36,7 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
           orderId,
           status: "processing",
         });
+        console.log("🔥 Socket emitted to user:", order.userId);
       }
     }
 

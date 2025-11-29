@@ -6,12 +6,14 @@ import type { Express, NextFunction, Request, Response } from "express";
 import express from "express";
 import helmet from "helmet";
 import hpp from "hpp";
+import http from "http";
 import morgan from "morgan";
 
 import { verifyToken } from "./middlewares/verifyToken.middleware";
 import { AuthenticationRouter } from "./routes/auth.route";
 import { OrderRouter } from "./routes/order.route";
 import { ALLOWED_ORIGINS, NODE_ENV, PORT } from "./secrets";
+import { initSocket } from "./socket/socket";
 import { rateLimiter } from "./utils/rateLimiter";
 import { stripeWebhookHandler } from "./webhooks/stripe";
 
@@ -164,8 +166,12 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   });
 });
 
+// Initialize socket.io
+const httpServer = http.createServer(app);
+initSocket(httpServer);
+
 // Start server
-const server = app.listen(PORT, async () => {
+const server = httpServer.listen(PORT, async () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
 

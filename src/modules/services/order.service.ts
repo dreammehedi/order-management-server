@@ -99,6 +99,6 @@ async function generatePayPalAccessToken() {
       },
     }
   );
-
+  console.log(response.data.access_token, "access token");
   return response.data.access_token;
 }

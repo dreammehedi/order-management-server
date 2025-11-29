@@ -1,34 +1,45 @@
-import express from "express";
-import { createServer } from "http";
 import jwt from "jsonwebtoken";
 import { Server } from "socket.io";
 import { JWT_SECRET } from "../secrets";
 
-const app = express();
-const httpServer = createServer(app);
-export const io = new Server(httpServer, { cors: { origin: "*" } });
+let io: Server;
 
-io.use((socket, next) => {
-  const token = socket.handshake.query?.token as string | undefined;
-  if (!token) return next(new Error("Authentication error"));
-  try {
-    const payload = jwt.verify(token, JWT_SECRET as string) as any;
-    // attach userId to socket for future
-    (socket as any).userId = payload.id;
-    return next();
-  } catch (err) {
-    return next(new Error("Authentication error"));
-  }
-});
-
-io.on("connection", (socket) => {
-  const userId = (socket as any).userId;
-  if (userId) {
-    // join room named by userId
-    socket.join(userId);
-  }
-
-  socket.on("disconnect", () => {
-    // cleanup if needed
+export function initSocket(server: any) {
+  io = new Server(server, {
+    cors: {
+      origin: "*",
+    },
   });
-});
+
+  io.use((socket, next) => {
+    const token = socket.handshake.auth?.token;
+    console.log(token, "token");
+
+    if (!token) return next(new Error("No auth token"));
+
+    try {
+      const decoded: any = jwt.verify(token, JWT_SECRET as string);
+
+      socket.data.userId = decoded.id;
+      next();
+    } catch (err) {
+      console.log(err, "err");
+      next(new Error("Invalid token"));
+    }
+  });
+
+  io.on("connection", (socket) => {
+    console.log("🟢 User connected:", socket.data.userId);
+
+    // Join room = userId
+    socket.join(socket.data.userId);
+
+    socket.on("disconnect", () => {
+      console.log("🔴 User disconnected:", socket.data.userId);
+    });
+  });
+
+  return io;
+}
+
+export { io };
