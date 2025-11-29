@@ -102,3 +102,12 @@ async function generatePayPalAccessToken() {
   console.log(response.data.access_token, "access token");
   return response.data.access_token;
 }
+
+export const getOrderService = async (userId: string) => {
+  const orders = await prisma.orders.findMany({
+    where: {
+      userId,
+    },
+  });
+  return orders;
+};
